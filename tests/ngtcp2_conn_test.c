@@ -11522,6 +11522,8 @@ void test_ngtcp2_conn_encode_0rtt_transport_params(void) {
   /* client side */
   setup_default_client(&conn);
 
+  conn->remote.transport_params->reliable_stream_reset = 1;
+
   slen = ngtcp2_conn_encode_0rtt_transport_params(conn, buf, sizeof(buf));
 
   assert_ptrdiff(0, <, slen);
@@ -11537,6 +11539,7 @@ void test_ngtcp2_conn_encode_0rtt_transport_params(void) {
   assert_uint64(64 * 1024, ==, early_params.initial_max_stream_data_uni);
   assert_uint64(64 * 1024, ==, early_params.initial_max_data);
   assert_uint64(8, ==, early_params.active_connection_id_limit);
+  assert_true(early_params.reliable_stream_reset);
 
   ngtcp2_conn_del(conn);
 
@@ -11576,6 +11579,8 @@ void test_ngtcp2_conn_encode_0rtt_transport_params(void) {
                 conn->remote.transport_params->initial_max_data);
   assert_uint64(early_params.active_connection_id_limit, ==,
                 conn->remote.transport_params->active_connection_id_limit);
+  assert_uint8(early_params.reliable_stream_reset, ==,
+               conn->remote.transport_params->reliable_stream_reset);
 
   ngtcp2_conn_del(conn);
 
@@ -11583,6 +11588,7 @@ void test_ngtcp2_conn_encode_0rtt_transport_params(void) {
   server_default_settings(&settings);
   server_default_transport_params(&params);
   params.disable_active_migration = 1;
+  params.reliable_stream_reset = 1;
   setup_default_server_settings(&conn, &null_path.path, &settings, &params);
 
   slen = ngtcp2_conn_encode_0rtt_transport_params(conn, buf, sizeof(buf));
@@ -11610,6 +11616,8 @@ void test_ngtcp2_conn_encode_0rtt_transport_params(void) {
                 early_params.max_udp_payload_size);
   assert_uint8(params.disable_active_migration, ==,
                early_params.disable_active_migration);
+  assert_uint8(params.reliable_stream_reset, ==,
+               early_params.reliable_stream_reset);
 
   ngtcp2_conn_del(conn);
 }
